@@ -15,6 +15,10 @@ jobs:
     name: Compilar aplicacion Android
     runs-on: ubuntu-latest
 
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+
     steps:
       - name: Descargar codigo
         uses: actions/checkout@v4
@@ -26,7 +30,22 @@ jobs:
           java-version: '17'
 
       - name: Preparar Android SDK
-        uses: android-actions/setup-android@v3
+        run: |
+          echo "Aceptando licencias Android"
+          yes | sdkmanager --licenses || true
+
+          echo "Instalando plataformas Android"
+          sdkmanager --install \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;35.0.0"
+
+      - name: Verificar proyecto
+        run: |
+          test -f gradlew
+          test -f settings.gradle
+          test -f app/build.gradle
+          test -f app/src/main/AndroidManifest.xml
 
       - name: Compilar APK
         run: |
@@ -40,4 +59,3 @@ jobs:
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 30
-          
